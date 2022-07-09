@@ -6,14 +6,11 @@ import datetime as dt
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Tri & Cycling", page_icon=":bar_chart:", layout="wide")
 
+
 # ---- READ EXCEL / fixed ----
 @st.cache
 def get_data_from_excel():
-    df = pd.read_excel(
-        io="BD.xlsx",
-        engine="openpyxl",
-        sheet_name="Sheet1"
-    )
+    df = pd.read_excel("BD.xlsx")
 
     df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
     df['order_date'] = pd.to_datetime(df['order_date']).dt.date
