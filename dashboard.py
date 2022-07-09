@@ -6,7 +6,7 @@ import datetime as dt
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Tri & Cycling", page_icon=":bar_chart:", layout="wide")
 
-# ---- READ EXCEL ----
+# ---- READ EXCEL / fixed ----
 df = pd.read_excel('BD.xlsx')
 df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
 df['order_date'] = pd.to_datetime(df['order_date']).dt.date
@@ -16,7 +16,6 @@ df['order_week'] = pd.to_datetime(df['order_week'], errors='coerce')
 df['order_week'] = pd.to_datetime(df['order_week']).dt.date
 df['ela_date'] = pd.to_datetime(df['ela_date'], errors='coerce')
 df['event_date'] = pd.to_datetime(df['event_date'], errors='coerce')
-
 df['total'] = df['total'].astype(int)
 df['client_id'] = df['client_id'].astype(int)
 df['client_name'] = df['client_name'].astype(str)
@@ -25,12 +24,12 @@ df['product_id'] = df['product_id'].astype(str)
 df['year'] = df['year'].astype(str) 
 df['day'] = df['day'].astype(str)
 df['month'] = df['month'].astype(str) 
-
 df['order_id'] = df['n_comprobante'].astype(str) + '-' + df['cons'].astype(str)
 
-
+#dataframe
 df_orders = df[pd.notnull(df['metodo_pago'])]
 df_orders = df_orders.groupby(['order_id','client_id','client_name','n_comprobante','email','order_month','order_week','order_date']).agg(total=('total','sum') ,metodos=('metodo_pago','nunique')).sort_values(by='order_date', ascending=False).reset_index()
+
 
 # ---- SIDEBAR / FILTRS ----
 st.sidebar.header("Please Filter Here:")
@@ -46,7 +45,6 @@ almacen_selection = st.sidebar.multiselect(
                             "Almacen:",
                             options=almacen,
                             default=almacen)
-
 
 mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
 df_selection = df_orders[mask]
@@ -78,25 +76,30 @@ with d_column:
 
 st.markdown("""---""")
 
-st.dataframe(df_selection)
 
-# # SALES BY PRODUCT LINE [BAR CHART]
-# sales_by_product_line = (
-#     df_selection.groupby(by=["Product line"]).sum()[["Total"]].sort_values(by="Total")
-# )
-# fig_product_sales = px.bar(
-#     sales_by_product_line,
-#     x="Total",
-#     y=sales_by_product_line.index,
-#     orientation="h",
-#     title="<b>Sales by Product Line</b>",
-#     color_discrete_sequence=["#0083B8"] * len(sales_by_product_line),
-#     template="plotly_white",
-# )
-# fig_product_sales.update_layout(
-#     plot_bgcolor="rgba(0,0,0,0)",
-#     xaxis=(dict(showgrid=False))
-# )
+# SALES BY PRODUCT LINE [BAR CHART]
+sales_by_product_line = (
+    df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False)
+)
+fig_product_sales = px.bar(
+    sales_by_product_line,
+    x=sales_by_product_line.index,
+    y="total",
+    orientation="v",
+    title="<b>Ventas por mes</b>",
+    color_discrete_sequence=["#0083B8"] * len(sales_by_product_line),
+    template="plotly_white",
+)
+fig_product_sales.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis=(dict(showgrid=False))
+)
+
+left_column, right_column = st.columns(2)
+left_column.plotly_chart(fig_product_sales, use_container_width=True)
+
+
+st.dataframe(df_selection)
 
 # # SALES BY HOUR [BAR CHART]
 # sales_by_hour = df_selection.groupby(by=["hour"]).sum()[["Total"]]
@@ -115,8 +118,7 @@ st.dataframe(df_selection)
 # )
 
 
-# left_column, right_column = st.columns(2)
-# left_column.plotly_chart(fig_hourly_sales, use_container_width=True)
+
 # right_column.plotly_chart(fig_product_sales, use_container_width=True)
 
 
