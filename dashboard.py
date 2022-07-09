@@ -8,7 +8,7 @@ st.set_page_config(page_title="Tri & Cycling", page_icon=":bar_chart:", layout="
 
 
 # ---- READ EXCEL / fixed ----
-@st.cache
+@st.cache(suppress_st_warning=True)
 def get_data_from_excel():
     df = pd.read_excel("BD.xlsx")
 
@@ -89,6 +89,7 @@ st.markdown("""---""")
 sales_by_product_line = (
     df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False)
 )
+
 fig_product_sales = px.bar(
     sales_by_product_line,
     x=sales_by_product_line.index,
