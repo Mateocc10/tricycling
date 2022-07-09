@@ -30,46 +30,55 @@ df['order_id'] = df['n_comprobante'].astype(str) + '-' + df['cons'].astype(str)
 
 
 df_orders = df[pd.notnull(df['metodo_pago'])]
-df_orders = df_orders.groupby(['order_id','client_id','client_name','n_comprobante','email','order_month','order_week','order_date']).agg(total=('total','sum') ,event_date=('event_date','max') ,metodos=('metodo_pago','nunique')).sort_values(by='order_date', ascending=False).reset_index()
+df_orders = df_orders.groupby(['order_id','client_id','client_name','n_comprobante','email','order_month','order_week','order_date']).agg(total=('total','sum') ,metodos=('metodo_pago','nunique')).sort_values(by='order_date', ascending=False).reset_index()
 
-# ---- SIDEBAR ----
+# ---- SIDEBAR / FILTRS ----
 st.sidebar.header("Please Filter Here:")
-order_date = df_orders['order_date'].unique().tolist()
 
-date_selection = st.sidebar.slider('date:',
+order_date = df_orders['order_date'].unique().tolist()
+date_selection = st.sidebar.slider('Fecha:',
                             min_value= min(order_date),
                             max_value= max(order_date),
                             value=(min(order_date),max(order_date)))
 
+almacen = df_orders['n_comprobante'].unique().tolist()
+almacen_selection = st.sidebar.multiselect(
+                            "Almacen:",
+                            options=almacen,
+                            default=almacen)
 
-# df_selection = df.query(
-#     "date == @city & Customer_type ==@customer_type & Gender == @gender"
-# )
+
+mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
+df_selection = df_orders[mask]
 
 # ---- MAINPAGE ----
 st.title(":bar_chart: Reporte Tri & Cycling")
 st.markdown("##")
 
-st.dataframe(df_orders)
+# TOP KPI's
+total_sales = int(df_selection["total"].sum())
+total_orders = int(df_selection["order_id"].nunique())
+total_clientes = int(df_selection['client_id'].nunique())
+aov = int(total_sales/total_orders)
 
-# # TOP KPI's
-# total_sales = int(df_selection["Total"].sum())
-# average_rating = round(df_selection["Rating"].mean(), 1)
-# star_rating = ":star:" * int(round(average_rating, 0))
-# average_sale_by_transaction = round(df_selection["Total"].mean(), 2)
 
-# left_column, middle_column, right_column = st.columns(3)
-# with left_column:
-#     st.subheader("Total Sales:")
-#     st.subheader(f"US $ {total_sales:,}")
-# with middle_column:
-#     st.subheader("Average Rating:")
-#     st.subheader(f"{average_rating} {star_rating}")
-# with right_column:
-#     st.subheader("Average Sales Per Transaction:")
-#     st.subheader(f"US $ {average_sale_by_transaction}")
+a_column, b_column, c_column, d_column = st.columns(4)
+with a_column:
+    st.subheader("Ventas:")
+    st.subheader(f"COP $ {total_sales:,}")
+with b_column:
+    st.subheader("Ordenes")
+    st.subheader(total_orders)
+with c_column:
+    st.subheader("Clientes")
+    st.subheader(total_clientes)
+with d_column:
+    st.subheader("valor por orden")
+    st.subheader(f"COP $ {aov:,}")
 
-# st.markdown("""---""")
+st.markdown("""---""")
+
+st.dataframe(df_selection)
 
 # # SALES BY PRODUCT LINE [BAR CHART]
 # sales_by_product_line = (
@@ -111,12 +120,12 @@ st.dataframe(df_orders)
 # right_column.plotly_chart(fig_product_sales, use_container_width=True)
 
 
-# # ---- HIDE STREAMLIT STYLE ----
-# hide_st_style = """
-#             <style>
-#             #MainMenu {visibility: hidden;}
-#             footer {visibility: hidden;}
-#             header {visibility: hidden;}
-#             </style>
-#             """
-# st.markdown(hide_st_style, unsafe_allow_html=True)
+# ---- HIDE STREAMLIT STYLE ----
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
