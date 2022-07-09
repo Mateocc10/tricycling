@@ -7,24 +7,35 @@ import datetime as dt
 st.set_page_config(page_title="Tri & Cycling", page_icon=":bar_chart:", layout="wide")
 
 # ---- READ EXCEL / fixed ----
-df = pd.read_excel('BD.xlsx')
-df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
-df['order_date'] = pd.to_datetime(df['order_date']).dt.date
-df['order_month'] = pd.to_datetime(df['order_month'], errors='coerce')
-df['order_month'] = pd.to_datetime(df['order_month']).dt.date
-df['order_week'] = pd.to_datetime(df['order_week'], errors='coerce')
-df['order_week'] = pd.to_datetime(df['order_week']).dt.date
-df['ela_date'] = pd.to_datetime(df['ela_date'], errors='coerce')
-df['event_date'] = pd.to_datetime(df['event_date'], errors='coerce')
-df['total'] = df['total'].astype(int)
-df['client_id'] = df['client_id'].astype(int)
-df['client_name'] = df['client_name'].astype(str)
-df['center'] = df['center'].astype(str)
-df['product_id'] = df['product_id'].astype(str)
-df['year'] = df['year'].astype(str) 
-df['day'] = df['day'].astype(str)
-df['month'] = df['month'].astype(str) 
-df['order_id'] = df['n_comprobante'].astype(str) + '-' + df['cons'].astype(str)
+@st.cache
+def get_data_from_excel():
+    df = pd.read_excel(
+        io="BD.xlsx",
+        engine="openpyxl",
+        sheet_name="Sheet1"
+    )
+
+    df['order_date'] = pd.to_datetime(df['order_date'], errors='coerce')
+    df['order_date'] = pd.to_datetime(df['order_date']).dt.date
+    df['order_month'] = pd.to_datetime(df['order_month'], errors='coerce')
+    df['order_month'] = pd.to_datetime(df['order_month']).dt.date
+    df['order_week'] = pd.to_datetime(df['order_week'], errors='coerce')
+    df['order_week'] = pd.to_datetime(df['order_week']).dt.date
+    df['ela_date'] = pd.to_datetime(df['ela_date'], errors='coerce')
+    df['event_date'] = pd.to_datetime(df['event_date'], errors='coerce')
+    df['total'] = df['total'].astype(int)
+    df['client_id'] = df['client_id'].astype(int)
+    df['client_name'] = df['client_name'].astype(str)
+    df['center'] = df['center'].astype(str)
+    df['product_id'] = df['product_id'].astype(str)
+    df['year'] = df['year'].astype(str) 
+    df['day'] = df['day'].astype(str)
+    df['month'] = df['month'].astype(str) 
+    df['order_id'] = df['n_comprobante'].astype(str) + '-' + df['cons'].astype(str)
+
+    return df
+
+df = get_data_from_excel()
 
 #dataframe
 df_orders = df[pd.notnull(df['metodo_pago'])]
