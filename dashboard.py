@@ -76,7 +76,7 @@ mystyle = '''
     </style>
     '''
 
-st.markdown(mystyle, unsafe_allow_html=True)
+st.columns(mystyle, unsafe_allow_html=True)
 
 a_column, b_column, c_column, d_column = st.columns(4)
 with a_column:
