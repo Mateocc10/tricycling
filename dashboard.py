@@ -137,7 +137,7 @@ fig3 = px.bar(df_grafico3,
     x="order_month", 
     y="total", 
     color="client_valido", 
-    title="<b>Ventas por clientes diferentes o default</b>"
+    title="<b>Ventas clientes validos o no</b>"
 )
 
 fig3.update_layout(
