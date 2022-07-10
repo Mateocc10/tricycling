@@ -122,9 +122,8 @@ fig_hourly_sales = px.bar(
     template="plotly_white",
 )
 fig_hourly_sales.update_layout(
-    xaxis=dict(tickmode="linear"),
     plot_bgcolor="rgba(0,0,0,0)",
-    yaxis=(dict(showgrid=False)),
+    xaxis=(dict(showgrid=False))
 )
 
 left_column, right_column = st.columns(2)
