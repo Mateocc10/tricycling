@@ -3,6 +3,7 @@ import plotly.express as px  # pip install plotly-express
 import streamlit as st  # pip install streamlit
 import datetime as dt
 import openpyxl
+import numpy as np
 
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Tri & Cycling", page_icon=":bar_chart:", layout="wide")
@@ -85,7 +86,7 @@ with d_column:
 st.markdown("""---""")
 
 
-#grafico numero 1 - ventas mes a mes
+#grafico 1
 sales_by_product_line = (
     df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False)
 )
@@ -104,7 +105,7 @@ fig_product_sales.update_layout(
     xaxis=(dict(showgrid=False))
 )
 
-
+#grafico 2
 df_grafico2 = df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False).reset_index()
 df_grafico2['aov'] = df_grafico2['total']/df_grafico2['orders']
 df_grafico2['aov'] = df_grafico2['aov'].astype(int)
@@ -126,11 +127,57 @@ fig_hourly_sales.update_layout(
     xaxis=(dict(showgrid=False))
 )
 
+#grafico 3
+df_grafico3 = df_selection.groupby(['order_month','client_name']).agg(orders=('order_id','nunique'), total=('total','sum')).sort_values(by=['order_month','orders'], ascending=False).reset_index()
+df_grafico3['client_name'] = df_grafico3['client_name'].str.lower()
+df_grafico3['client_valido'] = np.where(df_grafico3['client_name']=='cuantias menores', 'no','yes')
+df_grafico3 = df_grafico3.groupby(['order_month','client_valido']).agg(total=('total','sum')).sort_values(by=['order_month','total'], ascending=False).reset_index()
+
+fig3 = px.bar(df_grafico3, 
+    x="order_month", 
+    y="total", 
+    color="client_valido", 
+    title="<b>Ventas por clientes diferentes o default</b>"
+)
+
+fig3.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis=(dict(showgrid=False))
+)
+
+#grafico 4
+df_selection['client_name'] = df_selection['client_name'].str.lower()
+df_selection['client_valido'] = np.where(df_selection['client_name']=='cuantias menores', 'no','yes')
+df_base = df_selection[df_selection['client_valido']=='yes']
+df_base = df_base[['order_id','client_name','total','order_date','order_week','order_month']]
+df_base['rank'] = df_base.groupby(['client_name'])['order_date'].rank(method='first').astype(int)
+df_base_1 = df_base.sort_values(by='rank', ascending=False)
+df_base_1['rank_1'] = df_base_1['rank'] + 1
+df_base_1 = df_base_1[['client_name','rank_1','order_date']]
+df_base_2 = df_base.merge(df_base_1, left_on = ['client_name','rank'], right_on=['client_name','rank_1'])
+df_base_2['day_diff'] = (df_base_2['order_date_x'] - df_base_2['order_date_y']).dt.days
+
+df_grafico4 = df_base_2.groupby(['order_month']).agg(dias_promedio=('day_diff','mean')).round(0).sort_values(by='order_month', ascending=False).reset_index()
+
+fig4 = px.bar(df_grafico4, 
+    x="order_month", 
+    y="dias_promedio", 
+    title="<b>clientes validos, tiempo prom proxima compra</b>",
+    color_discrete_sequence=["#0083B8"] * len(df_grafico4)
+)
+
+fig4.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis=(dict(showgrid=False))
+)
+
 left_column, right_column = st.columns(2)
 left_column.plotly_chart(fig_product_sales, use_container_width=True)
 right_column.plotly_chart(fig_hourly_sales, use_container_width=True)
+left_column.plotly_chart(fig3, use_container_width=True)
+right_column.plotly_chart(fig4, use_container_width=True)
 
-st.dataframe(df_selection)
+#st.dataframe(df_selection)
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
