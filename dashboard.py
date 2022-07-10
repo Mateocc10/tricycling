@@ -162,7 +162,7 @@ df_grafico4 = df_base_2.groupby(['order_month']).agg(dias_promedio=('day_diff','
 fig4 = px.bar(df_grafico4, 
     x="order_month", 
     y="dias_promedio", 
-    title="<b>clientes validos, tiempo prom proxima compra</b>",
+    title="<b>Clientes validos, tiempo prom proxima compra</b>",
     color_discrete_sequence=["#0083B8"] * len(df_grafico4)
 )
 
@@ -171,11 +171,30 @@ fig4.update_layout(
     xaxis=(dict(showgrid=False))
 )
 
+#grafico 5
+df_grafico5 = df_base_2.groupby(['order_month']).agg(clients=('client_name','nunique'), orders=('order_id','nunique')).reset_index()
+df_grafico5['ordenes/clientes'] = (df_grafico5['orders']/df_grafico5['clients']).round(1)
+df_grafico5 = df_grafico5.sort_values(by='order_month', ascending=False)
+
+fig5 = px.bar(df_grafico5, 
+    x="order_month", 
+    y="ordenes/clientes", 
+    title="<b>Clientes validos, ordenes / clientes</b>",
+    color_discrete_sequence=["#0083B8"] * len(df_grafico5)
+)
+
+fig5.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis=(dict(showgrid=False))
+)
+
+
 left_column, right_column = st.columns(2)
 left_column.plotly_chart(fig_product_sales, use_container_width=True)
 right_column.plotly_chart(fig_hourly_sales, use_container_width=True)
 left_column.plotly_chart(fig3, use_container_width=True)
 right_column.plotly_chart(fig4, use_container_width=True)
+left_column.plotly_chart(fig5, use_container_width=True)
 
 #st.dataframe(df_selection)
 
