@@ -2,6 +2,7 @@ import pandas as pd  # pip install pandas openpyxl
 import plotly.express as px  # pip install plotly-express
 import streamlit as st  # pip install streamlit
 import datetime as dt
+import openpyxl
 
 # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title="Tri & Cycling", page_icon=":bar_chart:", layout="wide")
@@ -67,6 +68,15 @@ total_orders = int(df_selection["order_id"].nunique())
 total_clientes = int(df_selection['client_id'].nunique())
 aov = int(total_sales/total_orders)
 
+mystyle = '''
+    <style>
+        p {
+            text-align: justify;
+        }
+    </style>
+    '''
+
+st.markdown(mystyle, unsafe_allow_html=True)
 
 a_column, b_column, c_column, d_column = st.columns(4)
 with a_column:
@@ -85,7 +95,7 @@ with d_column:
 st.markdown("""---""")
 
 
-# SALES BY PRODUCT LINE [BAR CHART]
+#grafico numero 1 - ventas mes a mes
 sales_by_product_line = (
     df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False)
 )
@@ -103,6 +113,7 @@ fig_product_sales.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     xaxis=(dict(showgrid=False))
 )
+
 
 left_column, right_column = st.columns(2)
 left_column.plotly_chart(fig_product_sales, use_container_width=True)
