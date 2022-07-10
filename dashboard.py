@@ -106,7 +106,8 @@ fig_product_sales.update_layout(
 
 
 df_grafico2 = df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False).reset_index()
-df_grafico2['aov'] = int(df_grafico2['total']/df_grafico2['orders'])
+df_grafico2['aov'] = df_grafico2['total']/df_grafico2['orders']
+df_grafico2['aov'] = df_grafico2['aov'].astype(int)
 
 sales_by_hour = (
     df_grafico2.groupby(by=["order_month"]).sum()[["aov"]]
