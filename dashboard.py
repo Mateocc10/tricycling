@@ -76,9 +76,9 @@ mystyle = '''
     </style>
     '''
 
-st.columns(mystyle, unsafe_allow_html=True)
+st.markdown(mystyle, unsafe_allow_html=True)
 
-a_column, b_column, c_column, d_column = st.columns(4)
+a_column, b_column, c_column, d_column = st.columns((1,1,1,1))
 with a_column:
     st.subheader("Ventas:")
     st.subheader(f"COP $ {total_sales:,}")
