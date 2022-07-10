@@ -192,9 +192,11 @@ fig5.update_layout(
 left_column, right_column = st.columns(2)
 left_column.plotly_chart(fig_product_sales, use_container_width=True)
 right_column.plotly_chart(fig_hourly_sales, use_container_width=True)
-left_column.plotly_chart(fig3, use_container_width=True)
-right_column.plotly_chart(fig4, use_container_width=True)
-left_column.plotly_chart(fig5, use_container_width=True)
+
+c_column, d_column = st.columns(2)
+c_column.plotly_chart(fig3, use_container_width=True)
+d_column.plotly_chart(fig4, use_container_width=True)
+c_column.plotly_chart(fig5, use_container_width=True)
 
 #st.dataframe(df_selection)
 
