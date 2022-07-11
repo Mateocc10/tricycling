@@ -115,41 +115,55 @@ sales_by_product_line = (
     df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False)
 )
 
-fig_product_sales = px.bar(
-    sales_by_product_line,
-    x=sales_by_product_line.index,
-    y="total",
-    orientation="v",
-    title="<b>Ventas por mes</b>",
-    color_discrete_sequence=["#0083B8"] * len(sales_by_product_line),
-    template="plotly_white",
+try:
+    fig_product_sales = px.bar(
+        sales_by_product_line,
+        x=sales_by_product_line.index,
+        y="total",
+        orientation="v",
+        title="<b>Ventas por mes</b>",
+        color_discrete_sequence=["#0083B8"] * len(sales_by_product_line),
+        template="plotly_white",
+    )
+    fig_product_sales.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig4 = go.Figure(
+        data=[go.Bar(y=[0, 0, 0])],
+        layout_title_text="<b>Ventas por mes</b>"
 )
-fig_product_sales.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
-)
+
+
 
 #grafico 2
 df_grafico2 = df_selection.groupby(['order_month']).agg(orders=('order_id','nunique'), total=('total','sum'),clients=('client_id','nunique')).sort_values(by='order_month', ascending=False).reset_index()
 df_grafico2['aov'] = df_grafico2['total']/df_grafico2['orders']
 df_grafico2['aov'] = df_grafico2['aov'].astype(int)
-
 sales_by_hour = (
     df_grafico2.groupby(by=["order_month"]).sum()[["aov"]]
 )
 
-fig_hourly_sales = px.bar(
-    sales_by_hour,
-    x=sales_by_hour.index,
-    y="aov",
-    title="<b>Valor promedio por orden</b>",
-    color_discrete_sequence=["#0083B8"] * len(sales_by_hour),
-    template="plotly_white",
+try:
+    fig_hourly_sales = px.bar(
+        sales_by_hour,
+        x=sales_by_hour.index,
+        y="aov",
+        title="<b>Valor promedio por orden</b>",
+        color_discrete_sequence=["#0083B8"] * len(sales_by_hour),
+        template="plotly_white",
+    )
+    fig_hourly_sales.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig4 = go.Figure(
+        data=[go.Bar(y=[0, 0, 0])],
+        layout_title_text="<b>Valor promedio por orden</b>"
 )
-fig_hourly_sales.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
-)
+
 
 #grafico 3
 df_grafico3 = df_selection.groupby(['order_month','client_name']).agg(orders=('order_id','nunique'), total=('total','sum')).sort_values(by=['order_month','orders'], ascending=False).reset_index()
@@ -157,16 +171,22 @@ df_grafico3['client_name'] = df_grafico3['client_name'].str.lower()
 df_grafico3['client_valido'] = np.where(df_grafico3['client_name']=='cuantias menores', 'no','yes')
 df_grafico3 = df_grafico3.groupby(['order_month','client_valido']).agg(total=('total','sum')).sort_values(by=['order_month','total'], ascending=False).reset_index()
 
-fig3 = px.bar(df_grafico3, 
-    x="order_month", 
-    y="total", 
-    color="client_valido", 
-    title="<b>Ventas clientes validos o no</b>"
-)
+try:
+    fig3 = px.bar(df_grafico3, 
+        x="order_month", 
+        y="total", 
+        color="client_valido", 
+        title="<b>Ventas clientes validos o no</b>"
+    )
 
-fig3.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
+    fig3.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig4 = go.Figure(
+        data=[go.Bar(y=[0, 0, 0])],
+        layout_title_text="<b>Ventas clientes validos o no</b>"
 )
 
 #grafico 4
