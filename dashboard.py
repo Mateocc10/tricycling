@@ -1,5 +1,6 @@
 import pandas as pd  # pip install pandas openpyxl
 import plotly.express as px  # pip install plotly-express
+import plotly.graph_objects as go
 import streamlit as st  # pip install streamlit
 import datetime as dt
 from datetime import date, timedelta
@@ -185,50 +186,68 @@ df_base_2['day_diff'] = (df_base_2['order_date_x'] - df_base_2['order_date_y']).
 
 df_grafico4 = df_base_2.groupby(['order_month']).agg(dias_promedio=('day_diff','mean')).round(0).sort_values(by='order_month', ascending=False).reset_index()
 
+try:
+    fig4 = px.bar(df_grafico4, 
+        x="order_month", 
+        y="dias_promedio", 
+        title="<b>Clientes validos, tiempo prom proxima compra</b>",
+        color_discrete_sequence=["#0083B8"] * len(df_grafico4)
+    )
 
-fig4 = px.bar(df_grafico4, 
-    x="order_month", 
-    y="dias_promedio", 
-    title="<b>Clientes validos, tiempo prom proxima compra</b>",
-    color_discrete_sequence=["#0083B8"] * len(df_grafico4)
+    fig4.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig4 = go.Figure(
+        data=[go.Bar(y=[2, 1, 3])],
+        layout_title_text="<b>Clientes validos, tiempo prom proxima compra</b>"
 )
 
-fig4.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
-)
 
 #grafico 5
 df_grafico5 = df_base_2.groupby(['order_month']).agg(clients=('client_name','nunique'), orders=('order_id','nunique')).reset_index()
 df_grafico5['ordenes/clientes'] = (df_grafico5['orders']/df_grafico5['clients']).round(1)
 df_grafico5 = df_grafico5.sort_values(by='order_month', ascending=False)
 
-fig5 = px.bar(df_grafico5, 
-    x="order_month", 
-    y="ordenes/clientes", 
-    title="<b>Clientes validos, ordenes / clientes</b>",
-    color_discrete_sequence=["#0083B8"] * len(df_grafico5)
-)
+try:
+    fig5 = px.bar(df_grafico5, 
+        x="order_month", 
+        y="ordenes/clientes", 
+        title="<b>Clientes validos, ordenes / clientes</b>",
+        color_discrete_sequence=["#0083B8"] * len(df_grafico5)
+    )
 
-fig5.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
+    fig5.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig5 = go.Figure(
+        data=[go.Bar(y=[2, 1, 3])],
+        layout_title_text="<b>Clientes validos, ordenes / clientes</b>"
 )
 
 #grafico 6
 df_grafico6 = df_base_2.groupby(['rank']).agg(clientes=('client_name','nunique')).sort_values(by='rank', ascending = False).reset_index()
 df_grafico6 = df_grafico6[df_grafico6['rank']<=25]
 
-fig6 = px.bar(df_grafico6, 
-    x="rank", 
-    y="clientes", 
-    title="<b>Nº ordenes clientes unicos</b>",
-    color_discrete_sequence=["#0083B8"] * len(df_grafico5)
-)
+try:
+    fig6 = px.bar(df_grafico6, 
+        x="rank", 
+        y="clientes", 
+        title="<b>Nº ordenes clientes unicos</b>",
+        color_discrete_sequence=["#0083B8"] * len(df_grafico5)
+    )
 
-fig6.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
+    fig6.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig6 = go.Figure(
+        data=[go.Bar(y=[2, 1, 3])],
+        layout_title_text="<b>Nº ordenes clientes unicos</b>"
 )
 
 #agregar las graficas
@@ -261,4 +280,3 @@ hide_st_style = """
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
-
