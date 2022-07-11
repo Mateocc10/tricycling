@@ -2,6 +2,7 @@ import pandas as pd  # pip install pandas openpyxl
 import plotly.express as px  # pip install plotly-express
 import streamlit as st  # pip install streamlit
 import datetime as dt
+from datetime import date, timedelta
 import openpyxl
 import numpy as np
 
@@ -51,10 +52,12 @@ date_selection = st.sidebar.slider('Fecha:',
                             value=(min(order_date),max(order_date)))
 
 almacen = df_orders['n_comprobante'].unique().tolist()
+almacen_1 = almacen
+almacen_1.append("seleccionar")
 almacen_selection = st.sidebar.multiselect(
                             "Almacen:",
-                            options=almacen,
-                            default=None)
+                            almacen_1,
+                            default='seleccionar')
 
 cliente = df_orders['client_name'].unique().tolist()
 cliente_selection = st.sidebar.multiselect(
@@ -63,13 +66,12 @@ cliente_selection = st.sidebar.multiselect(
                             default=None)
 
 #se aplica validacion y filtros
-while almacen_selection == None:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['client_name'].isin(almacen))
-    df_selection = df_orders[mask]
-
-if almacen_selection != None:
+if 'seleccionar' in almacen_selection:
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen))
+else:
     mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
-    df_selection = df_orders[mask]
+    
+df_selection = df_orders[mask]
 
 # ---- MAINPAGE ----
 st.title(":bar_chart: Reporte Tri & Cycling")
@@ -79,7 +81,10 @@ st.markdown("##")
 total_sales = int(df_selection["total"].sum())
 total_orders = int(df_selection["order_id"].nunique())
 total_clientes = int(df_selection['client_id'].nunique())
-aov = int(total_sales/total_orders)
+try:
+    aov = int(total_sales/total_orders)
+except ZeroDivisionError:
+    aov = 0
 
 a_column, b_column, c_column, d_column = st.columns(4)
 with a_column:
@@ -174,6 +179,7 @@ df_base_2['day_diff'] = (df_base_2['order_date_x'] - df_base_2['order_date_y']).
 
 df_grafico4 = df_base_2.groupby(['order_month']).agg(dias_promedio=('day_diff','mean')).round(0).sort_values(by='order_month', ascending=False).reset_index()
 
+
 fig4 = px.bar(df_grafico4, 
     x="order_month", 
     y="dias_promedio", 
@@ -234,9 +240,11 @@ f_column.plotly_chart(fig6, use_container_width=True)
 
 
 #table 1
-df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='ordenes', ascending = False).reset_index()
-df_clientes['dias_con_nosotros'] = (pd.to_datetime("today").date() - df_clientes['primera_orden']).dt.days
-
+df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='compras', ascending = False).reset_index()
+df_clientes['primera_orden'] = df_clientes['primera_orden'].dt.date
+df_clientes['ultima_orden'] = df_clientes['ultima_orden'].dt.date
+df_clientes['hoy'] = dt.datetime.now().date()
+df_clientes['dias_con_nosotros']  = (df_clientes['hoy'] - df_clientes['primera_orden']).dt.days
 st.dataframe(df_clientes)
 
 # ---- HIDE STREAMLIT STYLE ----
