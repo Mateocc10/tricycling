@@ -54,7 +54,7 @@ almacen = df_orders['n_comprobante'].unique().tolist()
 almacen_selection = st.sidebar.multiselect(
                             "Almacen:",
                             options=almacen,
-                            default=almacen)
+                            default=None)
 
 cliente = df_orders['client_name'].unique().tolist()
 cliente_selection = st.sidebar.multiselect(
@@ -63,8 +63,13 @@ cliente_selection = st.sidebar.multiselect(
                             default=None)
 
 #se aplica validacion y filtros
-mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
-df_selection = df_orders[mask]
+while almacen_selection == None:
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['client_name'].isin(almacen))
+    df_selection = df_orders[mask]
+
+if almacen_selection != None:
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
+    df_selection = df_orders[mask]
 
 # ---- MAINPAGE ----
 st.title(":bar_chart: Reporte Tri & Cycling")
@@ -163,6 +168,8 @@ df_base_1['rank_1'] = df_base_1['rank'] + 1
 df_base_1 = df_base_1[['client_name','rank_1','order_date']]
 df_base_2 = df_base.merge(df_base_1, left_on = ['client_name','rank'], right_on=['client_name','rank_1'])
 #base para los graficos 4, 5 y 6
+df_base_2['order_date_x'] = pd.to_datetime(df_base_2['order_date_x'], errors='coerce')
+df_base_2['order_date_y'] = pd.to_datetime(df_base_2['order_date_y'], errors='coerce')
 df_base_2['day_diff'] = (df_base_2['order_date_x'] - df_base_2['order_date_y']).dt.days
 
 df_grafico4 = df_base_2.groupby(['order_month']).agg(dias_promedio=('day_diff','mean')).round(0).sort_values(by='order_month', ascending=False).reset_index()
