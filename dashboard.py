@@ -24,7 +24,7 @@ def get_data_from_excel():
     df['event_date'] = pd.to_datetime(df['event_date'], errors='coerce')
     df['total'] = df['total'].astype(int)
     df['client_id'] = df['client_id'].astype(int)
-    df['client_name'] = df['client_name'].astype(str)
+    df['client_name'] = df['client_name'].astype(str).str.lower()
     df['center'] = df['center'].astype(str)
     df['product_id'] = df['product_id'].astype(str)
     df['year'] = df['year'].astype(str) 
@@ -54,8 +54,15 @@ almacen = df_orders['n_comprobante'].unique().tolist()
 almacen_selection = st.sidebar.multiselect(
                             "Almacen:",
                             options=almacen,
-                            default=almacen)
+                            default=None)
 
+cliente = df_orders['client_name'].unique().tolist()
+cliente_selection = st.sidebar.multiselect(
+                            "Nombre de cliente:",
+                            options=cliente,
+                            default=None)
+
+#se aplica validacion y filtros
 mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
 df_selection = df_orders[mask]
 
@@ -155,6 +162,7 @@ df_base_1 = df_base.sort_values(by='rank', ascending=False)
 df_base_1['rank_1'] = df_base_1['rank'] + 1
 df_base_1 = df_base_1[['client_name','rank_1','order_date']]
 df_base_2 = df_base.merge(df_base_1, left_on = ['client_name','rank'], right_on=['client_name','rank_1'])
+#base para los graficos 4, 5 y 6
 df_base_2['day_diff'] = (df_base_2['order_date_x'] - df_base_2['order_date_y']).dt.days
 
 df_grafico4 = df_base_2.groupby(['order_month']).agg(dias_promedio=('day_diff','mean')).round(0).sort_values(by='order_month', ascending=False).reset_index()
@@ -188,17 +196,41 @@ fig5.update_layout(
     xaxis=(dict(showgrid=False))
 )
 
+#grafico 6
+df_grafico6 = df_base_2.groupby(['rank']).agg(clientes=('client_name','nunique')).sort_values(by='rank', ascending = False).reset_index()
+df_grafico6 = df_grafico6[df_grafico6['rank']<=25]
 
-left_column, right_column = st.columns(2)
-left_column.plotly_chart(fig_product_sales, use_container_width=True)
-right_column.plotly_chart(fig_hourly_sales, use_container_width=True)
+fig6 = px.bar(df_grafico6, 
+    x="rank", 
+    y="clientes", 
+    title="<b>Nº ordenes clientes unicos</b>",
+    color_discrete_sequence=["#0083B8"] * len(df_grafico5)
+)
+
+fig6.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis=(dict(showgrid=False))
+)
+
+#agregar las graficas
+a_column, b_column = st.columns(2)
+a_column.plotly_chart(fig_product_sales, use_container_width=True)
+b_column.plotly_chart(fig_hourly_sales, use_container_width=True)
 
 c_column, d_column = st.columns(2)
 c_column.plotly_chart(fig3, use_container_width=True)
 d_column.plotly_chart(fig4, use_container_width=True)
-c_column.plotly_chart(fig5, use_container_width=True)
 
-#st.dataframe(df_selection)
+e_column, f_column = st.columns(2)
+e_column.plotly_chart(fig5, use_container_width=True)
+f_column.plotly_chart(fig6, use_container_width=True)
+
+
+#table 1
+df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='ordenes', ascending = False).reset_index()
+df_clientes['dias_con_nosotros'] = (pd.to_datetime("today").date() - df_clientes['primera_orden']).dt.days
+
+st.dataframe(df_clientes)
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
