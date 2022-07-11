@@ -206,7 +206,7 @@ except IndexError:
 
 
 #grafico 5
-df_grafico5 = df_base_2.groupby(['order_month']).agg(clients=('client_name','nunique'), orders=('order_id','nunique')).reset_index()
+df_grafico5 = df_base.groupby(['order_month']).agg(clients=('client_name','nunique'), orders=('order_id','nunique')).reset_index()
 df_grafico5['ordenes/clientes'] = (df_grafico5['orders']/df_grafico5['clients']).round(1)
 df_grafico5 = df_grafico5.sort_values(by='order_month', ascending=False)
 
@@ -229,7 +229,7 @@ except IndexError:
 )
 
 #grafico 6
-df_grafico6 = df_base_2.groupby(['rank']).agg(clientes=('client_name','nunique')).sort_values(by='rank', ascending = False).reset_index()
+df_grafico6 = df_base.groupby(['rank']).agg(clientes=('client_name','nunique')).sort_values(by='rank', ascending = False).reset_index()
 df_grafico6 = df_grafico6[df_grafico6['rank']<=25]
 
 try:
@@ -265,14 +265,14 @@ f_column.plotly_chart(fig6, use_container_width=True)
 
 
 #table 1
-try:
-    df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='compras', ascending = False).reset_index()
-    df_clientes['primera_orden'] = df_clientes['primera_orden'].dt.date
-    df_clientes['ultima_orden'] = df_clientes['ultima_orden'].dt.date
-    df_clientes['dias_con_nosotros']  = (dt.datetime.now().date() - df_clientes['primera_orden']).dt.days
-    st.dataframe(df_clientes)
-except AttributeError:
-    st.table([])
+# try:
+df_clientes = df_base.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), primera_orden=('order_date','min'),ultima_orden=('order_date','max')).sort_values(by='compras', ascending = False).reset_index()
+df_clientes['dias_con_nosotros']  = (dt.datetime.now().date() - df_clientes['primera_orden']).dt.days
+df_clientes['valor_prom'] = df_clientes['compras'] / df_clientes['ordenes']
+df_clientes['valor_prom'] = df_clientes['valor_prom'].astype(int)
+st.dataframe(df_clientes)
+# except AttributeError:
+#     st.table([])
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
