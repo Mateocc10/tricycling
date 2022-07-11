@@ -200,7 +200,7 @@ try:
     )
 except IndexError:
     fig4 = go.Figure(
-        data=[go.Bar(y=[2, 1, 3])],
+        data=[go.Bar(y=[0, 0, 0])],
         layout_title_text="<b>Clientes validos, tiempo prom proxima compra</b>"
 )
 
@@ -224,7 +224,7 @@ try:
     )
 except IndexError:
     fig5 = go.Figure(
-        data=[go.Bar(y=[2, 1, 3])],
+        data=[go.Bar(y=[0, 0, 0])],
         layout_title_text="<b>Clientes validos, ordenes / clientes</b>"
 )
 
@@ -246,7 +246,7 @@ try:
     )
 except IndexError:
     fig6 = go.Figure(
-        data=[go.Bar(y=[2, 1, 3])],
+        data=[go.Bar(y=[0, 0, 0])],
         layout_title_text="<b>Nº ordenes clientes unicos</b>"
 )
 
@@ -265,11 +265,14 @@ f_column.plotly_chart(fig6, use_container_width=True)
 
 
 #table 1
-df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='compras', ascending = False).reset_index()
-df_clientes['primera_orden'] = df_clientes['primera_orden'].dt.date
-df_clientes['ultima_orden'] = df_clientes['ultima_orden'].dt.date
-df_clientes['dias_con_nosotros']  = (dt.datetime.now().date() - df_clientes['primera_orden']).dt.days
-st.dataframe(df_clientes)
+try:
+    df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='compras', ascending = False).reset_index()
+    df_clientes['primera_orden'] = df_clientes['primera_orden'].dt.date
+    df_clientes['ultima_orden'] = df_clientes['ultima_orden'].dt.date
+    df_clientes['dias_con_nosotros']  = (dt.datetime.now().date() - df_clientes['primera_orden']).dt.days
+    st.dataframe(df_clientes)
+except AttributeError:
+    st.table([])
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
