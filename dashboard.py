@@ -54,7 +54,7 @@ almacen = df_orders['n_comprobante'].unique().tolist()
 almacen_selection = st.sidebar.multiselect(
                             "Almacen:",
                             options=almacen,
-                            default=None)
+                            default=almacen)
 
 cliente = df_orders['client_name'].unique().tolist()
 cliente_selection = st.sidebar.multiselect(
