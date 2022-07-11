@@ -53,24 +53,30 @@ date_selection = st.sidebar.slider('Fecha:',
 
 almacen = df_orders['n_comprobante'].unique().tolist()
 almacen_1 = almacen
-almacen_1.append("seleccionar")
-almacen_selection = st.sidebar.multiselect(
+almacen_1.append("todos")
+almacen_selection = st.sidebar.selectbox(
                             "Almacen:",
                             almacen_1,
-                            default='seleccionar')
+                            index = almacen_1.index("todos"))
 
 cliente = df_orders['client_name'].unique().tolist()
-cliente_selection = st.sidebar.multiselect(
+cliente_1 = cliente
+cliente_1.append("todos")
+cliente_selection = st.sidebar.selectbox(
                             "Nombre de cliente:",
                             options=cliente,
-                            default=None)
+                            index = cliente_1.index("todos"))
 
 #se aplica validacion y filtros
-if 'seleccionar' in almacen_selection:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen))
+if 'todos' in almacen_selection and 'todos' in cliente_selection:
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen)) & (df_orders['client_name'].isin(cliente))
+elif 'todos' in almacen_selection and 'todos' not in cliente_selection:
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen)) & (df_orders['client_name']==cliente_selection)
+elif 'todos' in cliente_selection and 'todos' not in almacen_selection:
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante']==almacen_selection) & (df_orders['client_name'].isin(cliente))
 else:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen_selection))
-    
+    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante']==almacen_selection) & (df_orders['client_name']==cliente_selection)
+ 
 df_selection = df_orders[mask]
 
 # ---- MAINPAGE ----
@@ -243,8 +249,7 @@ f_column.plotly_chart(fig6, use_container_width=True)
 df_clientes = df_base_2.groupby(['client_name']).agg(ordenes=('order_id','nunique'), compras =('total','sum'), frecuencia=('day_diff','mean'),primera_orden=('order_date_x','min'),ultima_orden=('order_date_x','max')).sort_values(by='compras', ascending = False).reset_index()
 df_clientes['primera_orden'] = df_clientes['primera_orden'].dt.date
 df_clientes['ultima_orden'] = df_clientes['ultima_orden'].dt.date
-df_clientes['hoy'] = dt.datetime.now().date()
-df_clientes['dias_con_nosotros']  = (df_clientes['hoy'] - df_clientes['primera_orden']).dt.days
+df_clientes['dias_con_nosotros']  = (dt.datetime.now().date() - df_clientes['primera_orden']).dt.days
 st.dataframe(df_clientes)
 
 # ---- HIDE STREAMLIT STYLE ----
@@ -256,3 +261,4 @@ hide_st_style = """
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
+
