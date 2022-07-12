@@ -62,7 +62,7 @@ almacen_selection = st.sidebar.selectbox(
 producto = df_products['product_name'].unique().tolist()
 producto_1 = producto
 producto_1.append("todos")
-cliente_selection = st.sidebar.selectbox(
+producto_selection = st.sidebar.selectbox(
                             "Nombre de Producto:",
                             options=producto,
                             index = producto_1.index("todos"))
@@ -76,14 +76,29 @@ cliente_selection = st.sidebar.selectbox(
                             index = cliente_1.index("todos"))
 
 #se aplica validacion de los filtros
-if 'todos' in almacen_selection and 'todos' in cliente_selection:
-    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name'].isin(cliente))
-elif 'todos' in almacen_selection and 'todos' not in cliente_selection:
-    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name']==cliente_selection)
-elif 'todos' in cliente_selection and 'todos' not in almacen_selection:
-    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name'].isin(cliente))
+if 'todos' in almacen_selection and 'todos' in cliente_selection and 'todos' in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name'].isin(cliente)) & (df_products['product_name'].isin(producto))
+
+elif 'todos' in almacen_selection and 'todos' in cliente_selection and 'todos' not in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name'].isin(cliente)) & (df_products['product_name']==producto_selection)
+
+elif 'todos' in almacen_selection and 'todos' not in cliente_selection and 'todos' in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name']==cliente_selection) & (df_products['product_name'].isin(producto))
+
+elif 'todos' not in almacen_selection and 'todos' in cliente_selection and 'todos' in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name'].isin(cliente)) & (df_products['product_name'].isin(producto))
+
+elif 'todos' in almacen_selection and 'todos' not in cliente_selection and 'todos' not in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name']==cliente_selection) & (df_products['product_name']==producto_selection)
+
+elif 'todos' not in almacen_selection and 'todos' not in cliente_selection and 'todos' in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name']==cliente_selection) & (df_products['product_name'].isin(producto))
+
+elif 'todos' not in almacen_selection and 'todos' in cliente_selection and 'todos' not in producto_selection:
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name'].isin(cliente)) & (df_products['product_name']==producto_selection)
+    
 else:
-    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name']==cliente_selection)
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name']==cliente_selection) & (df_products['product_name']==producto_selection)
  
 df_selection = df_products[mask]
 
@@ -92,15 +107,86 @@ st.title(":bar_chart: Productos Tri & Cycling")
 st.markdown("##")
 
 
+# TOP KPI's
 total_products = int(df_selection["product_id"].nunique())
 total_unidades = int(df_selection['units'].sum())
 prom_product = int(df_selection['total'].mean())
 
+a_column, b_column, c_column = st.columns(3)
+with a_column:
+    st.subheader("Productos")
+    st.subheader(total_products)
+with b_column:
+    st.subheader("Unidades")
+    st.subheader(total_unidades)
+with c_column:
+    st.subheader("Prom valor productos")
+    st.subheader(f"COP $ {prom_product:,}")
 
+st.markdown("""---""")
+
+
+#grafico 1
 df_grafico1 = df_selection.groupby(['order_month']).agg(productos_vendidos=('product_id','nunique')).sort_values(by='order_month',ascending=False).reset_index()
-df_grafico2 = df_selection.groupby(['order_month']).agg(unidades_vendidos=('units','sum')).sort_values(by='order_month',ascending=False).reset_index()
+
+try:
+    fig1 = px.bar(df_grafico1, 
+        x="order_month", 
+        y="productos_vendidos", 
+        #color="client_valido", 
+        title="<b>Productos Vendidos</b>"
+    )
+
+    fig1.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig1 = go.Figure(
+        data=[go.Bar(y=[0, 0, 0])],
+        layout_title_text="<b>Productos Vendidos</b>"
+)
+
+df_grafico2 = df_selection.groupby(['order_month']).agg(unidades_vendidas=('units','sum')).sort_values(by='order_month',ascending=False).reset_index()
+
+try:
+    fig2 = px.bar(df_grafico2, 
+        x="order_month", 
+        y="unidades_vendidas", 
+        #color="client_valido", 
+        title="<b>Unidades Vendidas</b>"
+    )
+
+    fig2.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+except IndexError:
+    fig2 = go.Figure(
+        data=[go.Bar(y=[0, 0, 0])],
+        layout_title_text="<b>Unidades Vendidas</b>"
+)
+
+a_column, b_column = st.columns(2)
+a_column.plotly_chart(fig1, use_container_width=True)
+b_column.plotly_chart(fig2, use_container_width=True)
+
+#tabla 1
 df_tabla1 = df_selection.groupby(['product_name']).agg(ordenes=('order_id','nunique'), ventas=('total','sum'), unidades_vendidos=('units','sum'), promedio_venta=('total','mean')).sort_values(by='ordenes',ascending=False).round(0).reset_index()
+st.dataframe(df_tabla1)
+
 df_tabla2 = df_selection.groupby(['product_name','order_month']).agg(ordenes=('order_id','nunique')).sort_values(by='ordenes',ascending=False).round(0).reset_index()
 df_tabla2 = pd.pivot_table(df_tabla2, values='ordenes', index='product_name', columns='order_month', aggfunc=np.sum)
 df_tabla2['total'] = df_tabla2.sum(axis=1)
 df_tabla2 = df_tabla2.sort_values(by='total', ascending=False)
+st.dataframe(df_tabla2)
+
+# ---- HIDE STREAMLIT STYLE ----
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
