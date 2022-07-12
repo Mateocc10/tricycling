@@ -39,19 +39,19 @@ def get_data_from_excel():
 df = get_data_from_excel()
 
 #dataframe
-df_orders = df[pd.notnull(df['metodo_pago'])]
-df_orders = df_orders.groupby(['order_id','client_id','client_name','n_comprobante','email','order_month','order_week','order_date']).agg(total=('total','sum') ,metodos=('metodo_pago','nunique')).sort_values(by='order_date', ascending=False).reset_index()
+df_products = df[df['metodo_pago'].isnull()]
+df_products = df_products.groupby(['order_id','product_id','product_name','n_comprobante','client_name']).agg(order_date=('order_date','max'), units=('units','sum'), total=('total','sum')).sort_values(by='order_date', ascending=False).reset_index()
 
 # ---- SIDEBAR / FILTRS ----
 st.sidebar.header("Please Filter Here:")
 
-order_date = df_orders['order_date'].unique().tolist()
+order_date = df_products['order_date'].unique().tolist()
 date_selection = st.sidebar.slider('Fecha:',
                             min_value= min(order_date),
                             max_value= max(order_date),
                             value=(min(order_date),max(order_date)))
 
-almacen = df_orders['n_comprobante'].unique().tolist()
+almacen = df_products['n_comprobante'].unique().tolist()
 almacen_1 = almacen
 almacen_1.append("todos")
 almacen_selection = st.sidebar.selectbox(
@@ -59,7 +59,15 @@ almacen_selection = st.sidebar.selectbox(
                             almacen_1,
                             index = almacen_1.index("todos"))
 
-cliente = df_orders['client_name'].unique().tolist()
+producto = df_products['product_name'].unique().tolist()
+producto_1 = producto
+producto_1.append("todos")
+cliente_selection = st.sidebar.selectbox(
+                            "Nombre de Producto:",
+                            options=producto,
+                            index = producto_1.index("todos"))
+
+cliente = df_products['client_name'].unique().tolist()
 cliente_1 = cliente
 cliente_1.append("todos")
 cliente_selection = st.sidebar.selectbox(
@@ -69,15 +77,15 @@ cliente_selection = st.sidebar.selectbox(
 
 #se aplica validacion de los filtros
 if 'todos' in almacen_selection and 'todos' in cliente_selection:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen)) & (df_orders['client_name'].isin(cliente))
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name'].isin(cliente))
 elif 'todos' in almacen_selection and 'todos' not in cliente_selection:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante'].isin(almacen)) & (df_orders['client_name']==cliente_selection)
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name']==cliente_selection)
 elif 'todos' in cliente_selection and 'todos' not in almacen_selection:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante']==almacen_selection) & (df_orders['client_name'].isin(cliente))
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name'].isin(cliente))
 else:
-    mask = (df_orders['order_date'].between(*date_selection)) & (df_orders['n_comprobante']==almacen_selection) & (df_orders['client_name']==cliente_selection)
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name']==cliente_selection)
  
-df_selection = df_orders[mask]
+df_selection = df_products[mask]
 
 # ---- MAINPAGE ----
 st.title(":bar_chart: Productos Tri & Cycling")
