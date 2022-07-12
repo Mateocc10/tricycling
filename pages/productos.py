@@ -90,3 +90,17 @@ df_selection = df_products[mask]
 # ---- MAINPAGE ----
 st.title(":bar_chart: Productos Tri & Cycling")
 st.markdown("##")
+
+
+total_products = int(df_selection["product_id"].nunique())
+total_unidades = int(df_selection['units'].sum())
+prom_product = int(df_selection['total'].mean())
+
+
+df_grafico1 = df_selection.groupby(['order_month']).agg(productos_vendidos=('product_id','nunique')).sort_values(by='order_month',ascending=False).reset_index()
+df_grafico2 = df_selection.groupby(['order_month']).agg(unidades_vendidos=('units','sum')).sort_values(by='order_month',ascending=False).reset_index()
+df_tabla1 = df_selection.groupby(['product_name']).agg(ordenes=('order_id','nunique'), ventas=('total','sum'), unidades_vendidos=('units','sum'), promedio_venta=('total','mean')).sort_values(by='ordenes',ascending=False).round(0).reset_index()
+df_tabla2 = df_selection.groupby(['product_name','order_month']).agg(ordenes=('order_id','nunique')).sort_values(by='ordenes',ascending=False).round(0).reset_index()
+df_tabla2 = pd.pivot_table(df_tabla2, values='ordenes', index='product_name', columns='order_month', aggfunc=np.sum)
+df_tabla2['total'] = df_tabla2.sum(axis=1)
+df_tabla2 = df_tabla2.sort_values(by='total', ascending=False)
