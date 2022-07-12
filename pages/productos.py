@@ -96,9 +96,9 @@ elif 'todos' not in almacen_selection and 'todos' not in cliente_selection and '
 
 elif 'todos' not in almacen_selection and 'todos' in cliente_selection and 'todos' not in producto_selection:
     mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name'].isin(cliente)) & (df_products['product_name']==producto_selection)
-    
+
 else:
-    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante'].isin(almacen)) & (df_products['client_name']==cliente_selection) & (df_products['product_name']==producto_selection)
+    mask = (df_products['order_date'].between(*date_selection)) & (df_products['n_comprobante']==almacen_selection) & (df_products['client_name']==cliente_selection) & (df_products['product_name']==producto_selection)
  
 df_selection = df_products[mask]
 
