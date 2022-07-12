@@ -40,7 +40,7 @@ df = get_data_from_excel()
 
 #dataframe
 df_products = df[df['metodo_pago'].isnull()]
-df_products = df_products.groupby(['order_id','product_id','product_name','n_comprobante','client_name']).agg(order_date=('order_date','max'), units=('units','sum'), total=('total','sum')).sort_values(by='order_date', ascending=False).reset_index()
+df_products = df_products.groupby(['order_id','product_id','product_name','n_comprobante','client_name']).agg(order_date=('order_date','max'), order_month=('order_month','max'), units=('units','sum'), total=('total','sum')).sort_values(by='order_date', ascending=False).reset_index()
 
 # ---- SIDEBAR / FILTRS ----
 st.sidebar.header("Please Filter Here:")
