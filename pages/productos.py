@@ -178,7 +178,7 @@ df_tabla1['promedio_venta'] = df_tabla1['promedio_venta'].astype(int)
 st.dataframe(df_tabla1)
 
 df_tabla2 = df_selection.groupby(['product_name','order_month']).agg(ordenes=('order_id','nunique')).sort_values(by='ordenes',ascending=False).reset_index()
-df_table2['ordenes'] = df_table2['ordenes'].astype(int)
+df_tabla2['ordenes'] = df_tabla2['ordenes'].astype(int)
 df_tabla2 = pd.pivot_table(df_tabla2, values='ordenes', index='product_name', columns='order_month', aggfunc=np.sum)
 df_tabla2['total'] = df_tabla2.sum(axis=1)
 df_tabla2 = df_tabla2.sort_values(by='total', ascending=False)
